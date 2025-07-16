@@ -328,8 +328,8 @@ export default function PdfEditor() {
         <div className="flex flex-wrap gap-3 justify-start items-center mb-6">
             <Button onClick={handleInvertSelection} variant="secondary" size="sm" disabled={isProcessing}><FlipHorizontal className="mr-2"/>Pilihan Pembalik</Button>
             <Button onClick={handleRotateAll} variant="secondary" size="sm" disabled={isProcessing}><RotateCw className="mr-2"/>Putar Pilihan</Button>
-            <Button onClick={handleDownloadMerged} size="sm" disabled={isProcessing || selectedPages.size === 0}>{isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Download className="mr-2"/>}Unduh Terpilih</Button>
-            <Button onClick={handleDownloadSplit} variant="outline" size="sm" disabled={isProcessing || splitPoints.size === 0}>{isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Scissors className="mr-2"/>}Unduh Split PDF</Button>
+            <Button onClick={handleDownloadMerged} size="sm" disabled={isProcessing || selectedPages.size === 0 || splitPoints.size > 0}>{isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Download className="mr-2"/>}Unduh Terpilih</Button>
+            <Button onClick={handleDownloadSplit} variant="outline" size="sm" disabled={isProcessing || splitPoints.size === 0 || selectedPages.size > 0}>{isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Scissors className="mr-2"/>}Unduh Split PDF</Button>
             <Button onClick={resetState} variant="destructive" size="sm" disabled={isProcessing}><Trash2 className="mr-2"/>Hapus PDF</Button>
         </div>
 
