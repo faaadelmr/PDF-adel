@@ -12,7 +12,6 @@ import {
   RotateCw,
   Trash2,
   Download,
-  FileDown,
   Loader2,
   Scissors,
 } from "lucide-react";
@@ -164,10 +163,15 @@ export default function PdfEditor() {
     const originalPdf = await PDFDocument.load(arrayBuffer);
     const newPdf = await PDFDocument.create();
 
-    const pageIndexes = pagesToInclude.map(num => num - 1).filter(idx => idx >= 0 && idx < originalPdf.getPageCount());
-    if (pageIndexes.length === 0) return null;
+    const originalPageNumbers = pages.map(p => p.id);
+    
+    const pageIndicesToCopy = pagesToInclude
+      .map(pageNumber => originalPageNumbers.indexOf(pageNumber))
+      .filter(index => index !== -1);
 
-    const copiedPages = await newPdf.copyPages(originalPdf, pageIndexes);
+    if (pageIndicesToCopy.length === 0) return null;
+
+    const copiedPages = await newPdf.copyPages(originalPdf, pageIndicesToCopy);
     
     copiedPages.forEach((page, i) => {
         const pageNum = pagesToInclude[i];
@@ -236,6 +240,12 @@ export default function PdfEditor() {
             chunks.push(currentChunk);
         }
 
+        if (chunks.length === 0) {
+            toast({ variant: "destructive", title: "Tidak ada yang bisa dipisah" });
+            setIsProcessing(false);
+            return;
+        }
+
         setStatusMessage(`Creating ${chunks.length} split files...`);
 
         for (let i = 0; i < chunks.length; i++) {
@@ -251,7 +261,7 @@ export default function PdfEditor() {
         setStatusMessage(`Successfully downloaded ${chunks.length} split files!`);
     } catch (error) {
         console.error("Error creating split PDFs:", error);
-        toast({ variant: "destructive", title: "Gagal Membuat PDF Terpisah" });
+        toast({ variant: "destructive", title: "Gagal Membuat PDF Terpisah", description: error instanceof Error ? error.message : "Terjadi kesalahan yang tidak diketahui." });
     } finally {
         setIsProcessing(false);
         setTimeout(() => setStatusMessage(null), 5000);
