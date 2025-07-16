@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import ThemeSwitcher from "@/components/theme-switcher";
-import { LogIn, Menu, Combine, SeparatorVertical } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { LogIn, Combine, SeparatorVertical } from "lucide-react";
 
 const navItems = [
-  { href: "/select", label: "Select Pages", icon: SeparatorVertical, color: "text-accent" },
-  { href: "/merge", label: "Merge PDF", icon: Combine, color: "text-primary" },
+  { href: "/select", label: "Select", icon: SeparatorVertical, color: "text-accent" },
+  { href: "/merge", label: "Merge", icon: Combine, color: "text-primary" },
 ];
 
 export default function Header() {
@@ -22,58 +21,24 @@ export default function Header() {
             </Link>
           </div>
 
-          <nav className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => (
-              <Button key={item.label} variant="ghost" asChild>
-                <Link href={item.href} className={`text-sm font-medium ${item.color} hover:${item.color}/80`}>
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.label}
-                </Link>
-              </Button>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <nav className="flex items-center space-x-1">
+              {navItems.map((item) => (
+                <Button key={item.label} variant="ghost" asChild size="sm">
+                  <Link href={item.href} className={`text-xs font-medium ${item.color} hover:${item.color}/80`}>
+                    <item.icon className="mr-1 h-4 w-4" />
+                    {item.label}
+                  </Link>
+                </Button>
+              ))}
+            </nav>
+            
             <ThemeSwitcher />
-            <Button variant="ghost" size="icon" className="hidden md:inline-flex">
+            
+            <Button variant="ghost" size="icon">
               <LogIn />
               <span className="sr-only">Login</span>
             </Button>
-            
-            <div className="md:hidden">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Menu />
-                    <span className="sr-only">Open menu</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right">
-                  <div className="flex flex-col h-full">
-                    <div className="flex-grow">
-                      <nav className="flex flex-col space-y-2 mt-6">
-                        {navItems.map((item) => (
-                          <SheetClose asChild key={item.label}>
-                            <Button variant="ghost" className="justify-start" asChild>
-                               <Link href={item.href} className={item.color}>
-                                 <item.icon className="mr-2 h-4 w-4" />
-                                 {item.label}
-                               </Link>
-                            </Button>
-                          </SheetClose>
-                        ))}
-                      </nav>
-                    </div>
-                    <Button variant="outline" asChild>
-                      <Link href="#">
-                        <LogIn className="mr-2 h-4 w-4" />
-                        Login
-                      </Link>
-                    </Button>
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
           </div>
         </div>
       </div>
