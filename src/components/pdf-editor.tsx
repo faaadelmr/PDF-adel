@@ -163,15 +163,13 @@ export default function PdfEditor() {
     const originalPdf = await PDFDocument.load(arrayBuffer);
     const newPdf = await PDFDocument.create();
 
-    const originalPageNumbers = pages.map(p => p.id);
+    const originalPageIndices = pagesToInclude
+      .map(pageNumber => pageNumber - 1)
+      .filter(index => index >= 0 && index < originalPdf.getPageCount());
+
+    if (originalPageIndices.length === 0) return null;
     
-    const pageIndicesToCopy = pagesToInclude
-      .map(pageNumber => originalPageNumbers.indexOf(pageNumber))
-      .filter(index => index !== -1);
-
-    if (pageIndicesToCopy.length === 0) return null;
-
-    const copiedPages = await newPdf.copyPages(originalPdf, pageIndicesToCopy);
+    const copiedPages = await newPdf.copyPages(originalPdf, originalPageIndices);
     
     copiedPages.forEach((page, i) => {
         const pageNum = pagesToInclude[i];
@@ -228,8 +226,10 @@ export default function PdfEditor() {
     try {
         const chunks: number[][] = [];
         let currentChunk: number[] = [];
+        
+        const orderedSelected = pageOrder.filter(id => selectedPages.has(id));
 
-        for (const pageId of pageOrder) {
+        for (const pageId of orderedSelected) {
             currentChunk.push(pageId);
             if (splitPoints.has(pageId)) {
                 chunks.push(currentChunk);
@@ -240,8 +240,8 @@ export default function PdfEditor() {
             chunks.push(currentChunk);
         }
 
-        if (chunks.length === 0) {
-            toast({ variant: "destructive", title: "Tidak ada yang bisa dipisah" });
+        if (chunks.length === 0 || chunks.every(c => c.length === 0)) {
+            toast({ variant: "destructive", title: "Tidak ada yang bisa dipisah", description: "Tidak ada halaman terpilih dalam rentang pemisahan." });
             setIsProcessing(false);
             return;
         }
@@ -250,6 +250,7 @@ export default function PdfEditor() {
 
         for (let i = 0; i < chunks.length; i++) {
             const chunk = chunks[i];
+            if (chunk.length === 0) continue;
             const pdfBytes = await createPdf(chunk);
             if (pdfBytes) {
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -267,6 +268,7 @@ export default function PdfEditor() {
         setTimeout(() => setStatusMessage(null), 5000);
     }
   };
+
 
   const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -329,7 +331,7 @@ export default function PdfEditor() {
             <Button onClick={handleInvertSelection} variant="secondary" size="sm" disabled={isProcessing}><FlipHorizontal className="mr-2"/>Pilihan Pembalik</Button>
             <Button onClick={handleRotateAll} variant="secondary" size="sm" disabled={isProcessing}><RotateCw className="mr-2"/>Putar Pilihan</Button>
             <Button onClick={handleDownloadMerged} size="sm" disabled={isProcessing || selectedPages.size === 0 || splitPoints.size > 0}>{isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Download className="mr-2"/>}Unduh Terpilih</Button>
-            <Button onClick={handleDownloadSplit} variant="outline" size="sm" disabled={isProcessing || splitPoints.size === 0 || selectedPages.size > 0}>{isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Scissors className="mr-2"/>}Unduh Split PDF</Button>
+            <Button onClick={handleDownloadSplit} variant="outline" size="sm" disabled={isProcessing || splitPoints.size === 0}>{isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Scissors className="mr-2"/>}Unduh Split PDF</Button>
             <Button onClick={resetState} variant="destructive" size="sm" disabled={isProcessing}><Trash2 className="mr-2"/>Hapus PDF</Button>
         </div>
 
