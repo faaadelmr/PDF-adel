@@ -9,7 +9,6 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/s
 const navItems = [
   { href: "/select", label: "Select Pages", icon: SeparatorVertical, color: "text-accent" },
   { href: "/merge", label: "Merge PDF", icon: Combine, color: "text-primary" },
-  { href: "/split", label: "Split PDF", icon: SeparatorVertical, color: "text-accent" },
 ];
 
 export default function Header() {
