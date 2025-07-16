@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import ThemeSwitcher from "@/components/theme-switcher";
-import { LogIn, Menu, FileJson, Scissors, Wallet } from "lucide-react";
+import { LogIn, Menu, FileJson, Scissors, SplitSquareHorizontal } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 const navItems = [
   { href: "#", label: "Pdf Merge", icon: FileJson },
-  { href: "#", label: "Pdf Selected", icon: Scissors },
-  { href: "#", label: "Split Bill", icon: Wallet },
+  { href: "/", label: "Pdf Selected", icon: Scissors },
+  { href: "/split", label: "Split PDF", icon: SplitSquareHorizontal },
 ];
 
 export default function Header() {
