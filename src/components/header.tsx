@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import ThemeSwitcher from "@/components/theme-switcher";
-import { LogIn, Combine, SeparatorVertical } from "lucide-react";
+import { Combine, SeparatorVertical } from "lucide-react";
 
 const navItems = [
   { href: "/select", label: "Select", icon: SeparatorVertical, color: "text-accent" },
@@ -35,10 +35,6 @@ export default function Header() {
             
             <ThemeSwitcher />
             
-            <Button variant="ghost" size="icon">
-              <LogIn />
-              <span className="sr-only">Login</span>
-            </Button>
           </div>
         </div>
       </div>
