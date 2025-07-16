@@ -1,6 +1,6 @@
 import Header from "@/components/header";
 import Footer from "@/components/footer";
-import PdfEditor from "@/components/pdf-editor";
+import PdfSelect from "@/components/pdf-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Home() {
@@ -18,7 +18,7 @@ export default function Home() {
           </header>
           <Card className="shadow-xl bg-card border-none">
             <CardContent className="p-4 md:p-6">
-              <PdfEditor />
+              <PdfSelect />
             </CardContent>
           </Card>
         </div>
