@@ -1,29 +1,89 @@
-import Header from "@/components/header";
-import Footer from "@/components/footer";
-import PdfSelect from "@/components/pdf-select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { SeparatorVertical, Combine } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <Header />
-      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mx-auto max-w-7xl">
-          <header className="rounded-md border-b-4 border-accent mb-8">
-            <div className="py-3">
-              <h1 className="text-2xl font-bold text-primary font-headline">
-                Selected PDF
-              </h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4 overflow-hidden">
+      <header className="absolute top-0 left-0 w-full p-4 md:p-6 flex justify-between items-center">
+        <h1 className="text-2xl md:text-3xl font-bold font-headline text-primary tracking-widest">
+          PDF-adel
+        </h1>
+      </header>
+      
+      <main className="flex-grow flex flex-col items-center justify-center text-center">
+        <div className="opacity-0 fade-in-up">
+          <h2 className="text-4xl md:text-6xl font-extrabold font-headline tracking-tighter mb-4">
+            The Cybernetic PDF Toolkit
+          </h2>
+          <p className="max-w-2xl text-lg md:text-xl text-muted-foreground mb-12">
+            Select, Merge, and Re-engineer your documents with precision and style.
+          </p>
+        </div>
+
+        <div className="relative flex items-center justify-center w-full max-w-4xl">
+          <div className="w-full h-full flex flex-col md:flex-row items-stretch justify-center gap-0 md:gap-0">
+            {/* Left Gate */}
+            <Link href="/select" className="group w-full md:w-1/2 p-2 opacity-0 fade-in-up animate-delay-200">
+              <div className="relative h-full flex flex-col justify-center items-center p-8 md:p-12 rounded-lg md:rounded-r-none border-2 border-primary/20 bg-card/80 hover:border-accent hover:bg-accent/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-accent/20 overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-full bg-grid-accent opacity-5 group-hover:opacity-10 transition-opacity"></div>
+                <SeparatorVertical className="h-16 w-16 mb-4 text-accent transition-transform duration-300 group-hover:scale-110" />
+                <h3 className="text-2xl font-bold font-headline mb-2 text-accent">Select Pages</h3>
+                <p className="text-muted-foreground">Choose and extract specific pages from your PDF.</p>
+              </div>
+            </Link>
+
+            {/* Right Gate */}
+            <Link href="/merge" className="group w-full md:w-1/2 p-2 opacity-0 fade-in-up animate-delay-400">
+               <div className="relative h-full flex flex-col justify-center items-center p-8 md:p-12 rounded-lg md:rounded-l-none border-2 border-primary/20 bg-card/80 hover:border-primary hover:bg-primary/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/20 overflow-hidden">
+                 <div className="absolute top-0 left-0 w-full h-full bg-grid-primary opacity-5 group-hover:opacity-10 transition-opacity"></div>
+                <Combine className="h-16 w-16 mb-4 text-primary transition-transform duration-300 group-hover:scale-110" />
+                <h3 className="text-2xl font-bold font-headline mb-2 text-primary">Merge PDF</h3>
+                <p className="text-muted-foreground">Combine multiple PDF files into a single document.</p>
+              </div>
+            </Link>
+          </div>
+          
+          {/* Yin-Yang Separator */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 opacity-0 fade-in-up animate-delay-600 hidden md:flex">
+             <div className="relative w-full h-full flex items-center justify-center">
+                <div className="absolute w-full h-full rounded-full bg-gradient-to-r from-accent to-primary animate-spin [animation-duration:5s]"></div>
+                <div className="absolute w-28 h-28 rounded-full bg-background"></div>
+                <div className="relative w-24 h-24 rounded-full overflow-hidden flex">
+                    <div className="w-1/2 bg-accent"></div>
+                    <div className="w-1/2 bg-primary"></div>
+                    <div className="absolute w-12 h-12 top-0 left-1/2 -translate-x-1/2 rounded-full bg-accent border-4 border-background"></div>
+                    <div className="absolute w-12 h-12 bottom-0 left-1/2 -translate-x-1/2 rounded-full bg-primary border-4 border-background"></div>
+                </div>
             </div>
-          </header>
-          <Card className="shadow-xl bg-card border-none">
-            <CardContent className="p-4 md:p-6">
-              <PdfSelect />
-            </CardContent>
-          </Card>
+          </div>
         </div>
       </main>
-      <Footer />
+
+       <footer className="absolute bottom-0 left-0 w-full p-4 text-center">
+         <p className="text-xs text-muted-foreground">
+           &copy; {new Date().getFullYear()} PDF-adel. Engineered by humans, perfected by AI.
+         </p>
+       </footer>
     </div>
   );
+}
+
+// Add some styles for the grid background if they aren't in globals
+const globalStyles = `
+  .bg-grid-accent {
+    background-image: linear-gradient(hsl(var(--accent)) 1px, transparent 1px), linear-gradient(to right, hsl(var(--accent)) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  .bg-grid-primary {
+    background-image: linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(to right, hsl(var(--primary)) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+`;
+
+if (typeof window !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = globalStyles;
+  document.head.appendChild(styleSheet);
 }

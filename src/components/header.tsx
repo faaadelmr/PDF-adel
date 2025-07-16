@@ -3,30 +3,30 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import ThemeSwitcher from "@/components/theme-switcher";
-import { LogIn, Menu, FileJson, Scissors, SplitSquareHorizontal } from "lucide-react";
+import { LogIn, Menu, Combine, SeparatorVertical } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 const navItems = [
-  { href: "#", label: "Pdf Merge", icon: FileJson },
-  { href: "/", label: "Pdf Selected", icon: Scissors },
-  { href: "/split", label: "Split PDF", icon: SplitSquareHorizontal },
+  { href: "/select", label: "Select Pages", icon: SeparatorVertical, color: "text-accent" },
+  { href: "/merge", label: "Merge PDF", icon: Combine, color: "text-primary" },
+  { href: "/split", label: "Split PDF", icon: SeparatorVertical, color: "text-accent" },
 ];
 
 export default function Header() {
   return (
-    <header className="bg-card/80 backdrop-blur-sm sticky top-0 z-50 border-b">
+    <header className="bg-card/80 backdrop-blur-sm sticky top-0 z-50 border-b border-primary/10">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="text-2xl font-bold text-primary font-headline">
-              Tanma
+            <Link href="/" className="text-2xl font-bold text-primary font-headline tracking-widest">
+              PDF-adel
             </Link>
           </div>
 
           <nav className="hidden md:flex items-center space-x-1">
             {navItems.map((item) => (
               <Button key={item.label} variant="ghost" asChild>
-                <Link href={item.href} className="text-sm font-medium">
+                <Link href={item.href} className={`text-sm font-medium ${item.color} hover:${item.color}/80`}>
                   <item.icon className="mr-2 h-4 w-4" />
                   {item.label}
                 </Link>
@@ -56,7 +56,7 @@ export default function Header() {
                         {navItems.map((item) => (
                           <SheetClose asChild key={item.label}>
                             <Button variant="ghost" className="justify-start" asChild>
-                               <Link href={item.href} >
+                               <Link href={item.href} className={item.color}>
                                  <item.icon className="mr-2 h-4 w-4" />
                                  {item.label}
                                </Link>

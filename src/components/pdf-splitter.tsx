@@ -58,8 +58,8 @@ export default function PdfSplitter() {
       console.error("Error loading PDF:", error);
       toast({
         variant: "destructive",
-        title: "Gagal Memuat PDF",
-        description: "Terjadi kesalahan saat memproses file PDF Anda.",
+        title: "Error Loading PDF",
+        description: "There was an error processing your PDF file.",
       });
       resetState();
     } finally {
@@ -96,7 +96,7 @@ export default function PdfSplitter() {
             if (range.includes('-')) {
                 const [start, end] = range.split('-').map(Number);
                 if (isNaN(start) || isNaN(end) || start > end || start < 1 || end > numPages) {
-                    toast({ variant: "destructive", title: "Rentang halaman tidak valid", description: `Rentang "${range}" tidak valid.` });
+                    toast({ variant: "destructive", title: "Invalid page range", description: `The range "${range}" is invalid.` });
                     continue;
                 }
                 for (let i = start; i <= end; i++) {
@@ -105,7 +105,7 @@ export default function PdfSplitter() {
             } else {
                 const pageNum = Number(range);
                  if (isNaN(pageNum) || pageNum < 1 || pageNum > numPages) {
-                    toast({ variant: "destructive", title: "Nomor halaman tidak valid", description: `Halaman "${range}" tidak valid.` });
+                    toast({ variant: "destructive", title: "Invalid page number", description: `Page "${range}" is invalid.` });
                     continue;
                  }
                 pageNumbers.push(pageNum);
@@ -121,11 +121,11 @@ export default function PdfSplitter() {
             await new Promise(resolve => setTimeout(resolve, 200));
         }
 
-        toast({ title: "PDF Berhasil Dipisah", description: "File PDF Anda telah berhasil dipisah dan diunduh." });
+        toast({ title: "PDF Split Successful", description: "Your PDF files have been split and downloaded." });
 
     } catch (error) {
         console.error("Error splitting PDF:", error);
-        toast({ variant: "destructive", title: "Gagal Memisah PDF" });
+        toast({ variant: "destructive", title: "Error Splitting PDF" });
     } finally {
         setIsProcessing(false);
     }
@@ -170,8 +170,8 @@ export default function PdfSplitter() {
           <div className="floating">
             <UploadCloud className="mx-auto w-16 h-16 text-primary" strokeWidth={1}/>
           </div>
-          <h3 className="mt-4 text-xl font-semibold font-headline">Jatuhkan file pdf disini</h3>
-          <p className="mt-2 text-sm text-muted-foreground">atau klik disini untuk memilih berkas</p>
+          <h3 className="mt-4 text-xl font-semibold font-headline">Drop your PDF here</h3>
+          <p className="mt-2 text-sm text-muted-foreground">or click to browse files</p>
         </div>
       </div>
     );
@@ -181,7 +181,7 @@ export default function PdfSplitter() {
     return (
       <div className="text-center py-10">
         <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">Memproses PDF Anda...</p>
+        <p className="mt-4 text-muted-foreground">Analyzing Datastream...</p>
       </div>
     );
   }
@@ -190,22 +190,22 @@ export default function PdfSplitter() {
     <div className="flex flex-col items-center gap-6">
         <div className="w-full max-w-md text-center">
             <p className="font-semibold">{fileName}</p>
-            <p className="text-sm text-muted-foreground">Jumlah Halaman: {numPages}</p>
+            <p className="text-sm text-muted-foreground">Total Pages: {numPages}</p>
         </div>
 
         <div className="w-full max-w-md space-y-4">
             <div>
-                <Label htmlFor="split-ranges">Halaman atau rentang halaman</Label>
+                <Label htmlFor="split-ranges">Pages or page ranges</Label>
                 <Input 
                     id="split-ranges"
                     type="text" 
                     value={splitRanges} 
                     onChange={(e) => setSplitRanges(e.target.value)}
-                    placeholder="Contoh: 1, 3, 5-7, 10"
+                    placeholder="e.g., 1, 3, 5-7, 10"
                     className="mt-1"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                    Pisahkan dengan koma. Gunakan tanda hubung untuk rentang.
+                    Separate with commas. Use a dash for ranges.
                 </p>
             </div>
         </div>
@@ -213,10 +213,10 @@ export default function PdfSplitter() {
         <div className="flex flex-wrap gap-3 justify-center items-center">
             <Button onClick={handleSplit} disabled={isProcessing || !splitRanges}>
                 {isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Download className="mr-2"/>}
-                Pisah & Unduh
+                Split & Download
             </Button>
             <Button onClick={resetState} variant="destructive" disabled={isProcessing}>
-                <Trash2 className="mr-2"/>Hapus
+                <Trash2 className="mr-2"/>Delete
             </Button>
         </div>
     </div>
