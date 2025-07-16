@@ -144,7 +144,6 @@ export default function PdfEditor() {
     const currentRotation = newRotations.get(pageId) || 0;
     const newRotation = (currentRotation + (direction === 'cw' ? 90 : -90) + 360) % 360;
     newRotations.set(pageId, newRotation);
-    setPageRotations(newRotations);
   };
   
   const handleRotateAll = () => {
