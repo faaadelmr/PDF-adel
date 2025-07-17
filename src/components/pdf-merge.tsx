@@ -77,23 +77,22 @@ export default function PdfMerge() {
   const handleFiles = useCallback(async (files: FileList) => {
     if (isLoading || isProcessing) return;
     
-    // Reset state only when initiating a new upload session
-    resetState();
+    // Do not reset state here, allow adding more files.
+    // Call resetState() via a button if user wants to start over.
     setIsLoading(true);
-
-    const newFilesWithPages: FileWithPages[] = [];
-    let fileIdCounter = 0;
+    const currentFilesCount = filesWithPages.length;
 
     try {
-      for (const file of Array.from(files)) {
-        const fileId = fileIdCounter++;
-        const pages: PageRepresentation[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileId = currentFilesCount + i;
+        const newPages: PageRepresentation[] = [];
 
         if (file.type === "application/pdf") {
           const arrayBuffer = await file.arrayBuffer();
           const pdf = await pdfjs.getDocument(arrayBuffer).promise;
-          for (let i = 0; i < pdf.numPages; i++) {
-            const page = await pdf.getPage(i + 1);
+          for (let pageNum = 0; pageNum < pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum + 1);
             const viewport = page.getViewport({ scale: 0.8 });
             const canvas = document.createElement("canvas");
             const context = canvas.getContext("2d");
@@ -101,10 +100,10 @@ export default function PdfMerge() {
             canvas.height = viewport.height;
             canvas.width = viewport.width;
             await page.render({ canvasContext: context, viewport }).promise;
-            pages.push({
-              id: `${fileId}-${i}`,
+            newPages.push({
+              id: `${fileId}-${pageNum}`,
               fileId: fileId,
-              originalPageIndex: i,
+              originalPageIndex: pageNum,
               fileName: file.name,
               dataUrl: canvas.toDataURL(),
               type: "pdf",
@@ -117,7 +116,7 @@ export default function PdfMerge() {
             reader.onerror = (err) => reject(err);
             reader.readAsDataURL(file);
           });
-          pages.push({
+          newPages.push({
             id: `${fileId}-0`,
             fileId: fileId,
             originalPageIndex: 0,
@@ -134,12 +133,11 @@ export default function PdfMerge() {
             continue;
         }
 
-        if (pages.length > 0) {
-            newFilesWithPages.push({ id: fileId, file, pages });
+        if (newPages.length > 0) {
+            setFilesWithPages(prev => [...prev, { id: fileId, file, pages: newPages }]);
+            setOrderedPages(prev => [...prev, ...newPages]);
         }
       }
-      setFilesWithPages(newFilesWithPages);
-      setOrderedPages(newFilesWithPages.flatMap(f => f.pages));
     } catch (error) {
       console.error("Error loading files:", error);
       toast({
@@ -147,11 +145,10 @@ export default function PdfMerge() {
         title: "Error Loading Files",
         description: "There was an error processing your files.",
       });
-      resetState();
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, isProcessing, toast]);
+  }, [isLoading, isProcessing, toast, filesWithPages.length]);
 
   const rotatePage = (pageId: string) => {
     const newRotations = new Map(pageRotations);
@@ -184,13 +181,13 @@ export default function PdfMerge() {
         if (!fileInfo) continue;
         
         const rotation = pageRotations.get(page.id) || 0;
-        const rotationAngle = degrees(rotation);
-
+        
         if (page.type === "pdf") {
           const arrayBuffer = await fileInfo.file.arrayBuffer();
           const sourcePdf = await PDFDocument.load(arrayBuffer);
           const [copiedPage] = await newPdf.copyPages(sourcePdf, [page.originalPageIndex]);
-          copiedPage.setRotation(rotationAngle);
+          const currentRotation = copiedPage.getRotation().angle;
+          copiedPage.setRotation(degrees(currentRotation + rotation));
           newPdf.addPage(copiedPage);
         } else if (page.type === "image") {
           const arrayBuffer = await fileInfo.file.arrayBuffer();
@@ -202,8 +199,6 @@ export default function PdfMerge() {
           }
           
           const dims = image.scale(1);
-          const pdfPage = newPdf.addPage();
-          
           let pageWidth = dims.width;
           let pageHeight = dims.height;
 
@@ -212,14 +207,14 @@ export default function PdfMerge() {
             pageHeight = dims.width;
           }
 
-          pdfPage.setSize(pageWidth, pageHeight);
-          pdfPage.setRotation(rotationAngle);
-
+          const pdfPage = newPdf.addPage([pageWidth, pageHeight]);
+          
           pdfPage.drawImage(image, {
-            x: rotation === 90 ? pageHeight : 0,
-            y: rotation === 270 ? pageWidth : 0,
+            x: rotation === 90 ? pageHeight : (rotation === 180 ? pageWidth : (rotation === 270 ? 0 : 0)),
+            y: rotation === 270 ? pageWidth : (rotation === 180 ? pageHeight : (rotation === 90 ? 0 : 0)),
             width: dims.width,
             height: dims.height,
+            rotate: degrees(rotation)
           });
         }
       }
@@ -259,6 +254,8 @@ export default function PdfMerge() {
   const onFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       handleFiles(e.target.files);
+      // Reset input value to allow re-uploading the same file
+      e.target.value = '';
     }
   };
 
@@ -283,24 +280,25 @@ export default function PdfMerge() {
       </div>
     );
   }
-
-  if (isLoading) {
-    return (
-      <div className="text-center py-10">
-        <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">Initializing Neural Interface...</p>
-      </div>
-    );
-  }
-
+  
   return (
     <div>
         <div className="flex flex-wrap gap-3 justify-start items-center mb-6">
+            <Button onClick={() => fileInputRef.current?.click()} size="sm" variant="outline" disabled={isLoading || isProcessing}>
+              <UploadCloud className="mr-2"/> Add More Files
+            </Button>
             <Button onClick={handleDownloadMerged} size="sm" disabled={isProcessing || orderedPages.length === 0}>{isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Download className="mr-2"/>}Download Merged PDF</Button>
             <Button onClick={resetState} variant="destructive" size="sm" disabled={isProcessing}><Trash2 className="mr-2"/>Clear All</Button>
         </div>
 
         {statusMessage && <div className="mb-4 text-center text-sm p-2 rounded-md bg-accent text-accent-foreground">{statusMessage}</div>}
+        
+        {isLoading && (
+          <div className="text-center py-10">
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+            <p className="mt-4 text-muted-foreground">Processing files...</p>
+          </div>
+        )}
 
         <div ref={pageGridRef} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-x-1 gap-y-4">
             {orderedPages.map((page) => {
