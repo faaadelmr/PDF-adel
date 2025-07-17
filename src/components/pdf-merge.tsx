@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, type ChangeEvent } from "react";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, degrees } from "pdf-lib";
 import * as pdfjs from "pdfjs-dist";
 import Sortable from "sortablejs";
 import { Button } from "@/components/ui/button";
@@ -56,7 +56,7 @@ export default function PdfMerge() {
           
           const newOrderedPages = newOrderedIds.map(id => {
             return orderedPages.find(p => p.id === id)!;
-          }).filter(Boolean); // Filter out undefined if any id not found
+          }).filter(Boolean);
 
           setOrderedPages(newOrderedPages);
         },
@@ -76,8 +76,10 @@ export default function PdfMerge() {
 
   const handleFiles = useCallback(async (files: FileList) => {
     if (isLoading || isProcessing) return;
-    setIsLoading(true);
+    
+    // Reset state only when initiating a new upload session
     resetState();
+    setIsLoading(true);
 
     const newFilesWithPages: FileWithPages[] = [];
     let fileIdCounter = 0;
@@ -129,7 +131,7 @@ export default function PdfMerge() {
                 title: "Unsupported File Type",
                 description: `File "${file.name}" has an unsupported type.`,
             });
-            continue; // Skip unsupported files
+            continue;
         }
 
         if (pages.length > 0) {
@@ -252,7 +254,7 @@ export default function PdfMerge() {
     }
   };
 
-  if (filesWithPages.length === 0) {
+  if (filesWithPages.length === 0 && !isLoading) {
     return (
       <div
         id="dropZone"
