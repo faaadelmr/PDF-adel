@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, type ChangeEvent } from "react";
-import { PDFDocument, degrees } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib";
 import * as pdfjs from "pdfjs-dist";
 import Sortable from "sortablejs";
 import { Button } from "@/components/ui/button";
@@ -12,17 +12,20 @@ import {
   Download,
   Loader2,
   RotateCw,
+  FileText,
 } from "lucide-react";
+import mammoth from "mammoth";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 interface PageRepresentation {
   id: string; // "fileIndex-pageIndex"
   fileId: number;
-  originalPageIndex: number; // 0-based
+  originalPageIndex: number; // 0-based for PDFs/images, page number for docx
   fileName: string;
   dataUrl: string;
-  type: "pdf" | "image";
+  type: "pdf" | "image" | "docx";
+  docxHtmlContent?: string; // For docx pages
 }
 
 interface FileWithPages {
@@ -77,15 +80,12 @@ export default function PdfMerge() {
   const handleFiles = useCallback(async (files: FileList) => {
     if (isLoading || isProcessing) return;
     
-    // Do not reset state here, allow adding more files.
-    // Call resetState() via a button if user wants to start over.
     setIsLoading(true);
-    const currentFilesCount = filesWithPages.length;
+    let lastFileId = filesWithPages.length > 0 ? Math.max(...filesWithPages.map(f => f.id)) : -1;
 
     try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const fileId = currentFilesCount + i;
+      for (const file of Array.from(files)) {
+        const fileId = ++lastFileId;
         const newPages: PageRepresentation[] = [];
 
         if (file.type === "application/pdf") {
@@ -124,6 +124,21 @@ export default function PdfMerge() {
             dataUrl,
             type: "image",
           });
+        } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || file.name.endsWith('.docx')) {
+            const arrayBuffer = await file.arrayBuffer();
+            const { value } = await mammoth.convertToHtml({ arrayBuffer });
+            
+            // For simplicity, we'll treat the whole docx as one page.
+            // A more complex implementation could split by headers, etc.
+            newPages.push({
+                id: `${fileId}-0`,
+                fileId: fileId,
+                originalPageIndex: 0,
+                fileName: file.name,
+                dataUrl: '', // No direct preview, will show an icon.
+                type: 'docx',
+                docxHtmlContent: value,
+            });
         } else {
             toast({
                 variant: "destructive",
@@ -143,12 +158,12 @@ export default function PdfMerge() {
       toast({
         variant: "destructive",
         title: "Error Loading Files",
-        description: "There was an error processing your files.",
+        description: `There was an error processing your files. ${error instanceof Error ? error.message : ''}`,
       });
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, isProcessing, toast, filesWithPages.length]);
+  }, [isLoading, isProcessing, toast, filesWithPages]);
 
   const rotatePage = (pageId: string) => {
     const newRotations = new Map(pageRotations);
@@ -168,6 +183,48 @@ export default function PdfMerge() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+  
+  const addHtmlToPdf = async (pdfDoc: PDFDocument, html: string) => {
+    // This is a simplified text conversion. For full HTML rendering, a library like html2canvas would be needed
+    // which adds significant complexity. We will extract text and format it simply.
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    const text = tempDiv.innerText || '';
+    
+    const page = pdfDoc.addPage();
+    const { width, height } = page.getSize();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontSize = 12;
+    const margin = 50;
+
+    const textWidth = width - margin * 2;
+    
+    const lines = text.split('\n');
+    let y = height - margin;
+
+    for (const line of lines) {
+      let textSegment = line;
+      while (textSegment.length > 0) {
+        let textFits = textSegment;
+        let segmentWidth = font.widthOfTextAtSize(textFits, fontSize);
+
+        while (segmentWidth > textWidth) {
+          textFits = textFits.slice(0, -1);
+          segmentWidth = font.widthOfTextAtSize(textFits, fontSize);
+        }
+
+        if (y < margin) {
+          pdfDoc.addPage();
+          y = height - margin;
+        }
+
+        page.drawText(textFits, { x: margin, y, font, size: fontSize, color: rgb(0, 0, 0) });
+        y -= fontSize * 1.2;
+        textSegment = textSegment.substring(textFits.length);
+      }
+    }
+  };
+
 
   const handleDownloadMerged = async () => {
     if (orderedPages.length === 0) return;
@@ -216,6 +273,8 @@ export default function PdfMerge() {
             height: dims.height,
             rotate: degrees(rotation)
           });
+        } else if (page.type === 'docx' && page.docxHtmlContent) {
+           await addHtmlToPdf(newPdf, page.docxHtmlContent);
         }
       }
 
@@ -258,6 +317,23 @@ export default function PdfMerge() {
       e.target.value = '';
     }
   };
+  
+  const renderPagePreview = (page: PageRepresentation) => {
+    const rotation = pageRotations.get(page.id) || 0;
+    
+    if (page.type === 'docx') {
+      return (
+        <div className="w-full h-full bg-card flex flex-col items-center justify-center p-2 border-2 border-primary/50 rounded-md">
+            <FileText className="w-12 h-12 text-primary" />
+            <p className="text-xs text-muted-foreground mt-2 text-center">DOCX Page</p>
+        </div>
+      );
+    }
+    
+    return (
+       <img src={page.dataUrl} className="object-contain w-full h-full transition-transform duration-300" alt={`Page from ${page.fileName}`} style={{transform: `rotate(${rotation}deg)`}}/>
+    );
+  }
 
   if (filesWithPages.length === 0 && !isLoading) {
     return (
@@ -269,12 +345,12 @@ export default function PdfMerge() {
         onClick={() => fileInputRef.current?.click()}
         className={`p-8 border-2 border-dashed rounded-lg shadow-xl cursor-pointer transition-all duration-300 ${isDragging ? 'border-primary bg-primary/10' : 'border-primary/50 hover:border-primary'}`}
       >
-        <input type="file" id="fileInput" ref={fileInputRef} onChange={onFileInputChange} multiple accept=".pdf,image/jpeg,image/png" className="hidden" />
+        <input type="file" id="fileInput" ref={fileInputRef} onChange={onFileInputChange} multiple accept=".pdf,image/jpeg,image/png,.docx,.doc" className="hidden" />
         <div className="text-center">
           <div className="floating">
             <UploadCloud className="mx-auto w-16 h-16 text-primary" strokeWidth={1}/>
           </div>
-          <h3 className="mt-4 text-xl font-semibold font-headline">Drop your PDFs or Images here</h3>
+          <h3 className="mt-4 text-xl font-semibold font-headline">Drop your PDFs, Images, or DOCX here</h3>
           <p className="mt-2 text-sm text-muted-foreground">or click to browse files</p>
         </div>
       </div>
@@ -300,18 +376,17 @@ export default function PdfMerge() {
           </div>
         )}
 
-        <div ref={pageGridRef} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-x-1 gap-y-4">
+        <div ref={pageGridRef} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-x-2 gap-y-4">
             {orderedPages.map((page) => {
-                const rotation = pageRotations.get(page.id) || 0;
                 
                 return (
-                    <div key={page.id} data-page-id={page.id} className="relative group page-handle cursor-move w-full">
-                        <div className={`relative aspect-[0.707] rounded-lg overflow-hidden border-4 border-transparent`}>
-                            <img src={page.dataUrl} className="object-contain w-full h-full transition-transform duration-300" alt={`Page from ${page.fileName}`} style={{transform: `rotate(${rotation}deg)`}}/>
-                            <div className="absolute right-0 bottom-0 left-0 p-2 text-center text-white text-xs font-bold bg-black/50 truncate">
+                    <div key={page.id} data-page-id={page.id} className="relative group page-handle cursor-move w-full flex flex-col items-center">
+                        <div className={`relative w-full aspect-[0.707] rounded-lg overflow-hidden border-4 border-transparent`}>
+                            {renderPagePreview(page)}
+                            <div className="absolute right-0 bottom-0 left-0 p-1 text-center text-white text-[10px] font-bold bg-black/60 truncate">
                                 {page.fileName}
                             </div>
-                            <button onClick={(e) => { e.stopPropagation(); rotatePage(page.id); }} className="absolute top-1 right-1 p-1.5 text-white rounded-full opacity-0 transition-opacity rotate-btn bg-black/50 group-hover:opacity-100 hover:bg-primary z-10">
+                            <button onClick={(e) => { e.stopPropagation(); rotatePage(page.id); }} className="absolute top-1 right-1 p-1.5 text-white rounded-full opacity-0 transition-opacity rotate-btn bg-black/50 group-hover:opacity-100 hover:bg-primary z-10" title="Rotate 90° CW">
                                 <RotateCw className="w-4 h-4"/>
                             </button>
                         </div>
