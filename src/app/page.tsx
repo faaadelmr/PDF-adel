@@ -12,12 +12,13 @@ export default function Home() {
       </header>
       
       <main className="flex-grow flex flex-col items-center justify-center text-center">
-        <div className="opacity-0 fade-in-up">
+        <div className="opacity-0 fade-in-up flex flex-col items-center justify-center">
           <h2 className="text-4xl md:text-6xl font-extrabold font-headline tracking-tighter mb-4">
             The Cybernetic PDF Toolkit
           </h2>
-          <p className="max-w-2xl text-lg md:text-xl text-muted-foreground mb-12">
+          <p className="max-w-2xl text-center text-lg md:text-xl text-muted-foreground mb-12">
             Select, Merge, and Re-engineer your documents with precision and style.
+            <br />No need upload, all process direct from your browser. so its secure.
           </p>
         </div>
 

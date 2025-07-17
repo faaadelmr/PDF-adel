@@ -102,8 +102,8 @@ export default function PdfEditor() {
       console.error("Error loading PDF:", error);
       toast({
         variant: "destructive",
-        title: "Gagal Memuat PDF",
-        description: "Terjadi kesalahan saat memproses file PDF Anda.",
+        title: "Failed to Load PDF",
+        description: "An error occurred while processing your PDF file.",
       });
       resetState();
     } finally {
@@ -203,11 +203,11 @@ export default function PdfEditor() {
         
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const originalFileName = currentFile.name.replace(/\.pdf$/i, '');
-        downloadBlob(blob, `${originalFileName}_TanmaSelected.pdf`);
+        downloadBlob(blob, `${originalFileName}_PDF-adelMerge.pdf`);
         setStatusMessage("Merged PDF downloaded!");
     } catch (error) {
         console.error("Error creating merged PDF:", error);
-        toast({ variant: "destructive", title: "Gagal Menggabungkan PDF" });
+        toast({ variant: "destructive", title: "Failed to Merge PDF" });
         setStatusMessage(null);
     } finally {
         setIsProcessing(false);
@@ -217,7 +217,7 @@ export default function PdfEditor() {
   
   const handleDownloadSplit = async () => {
     if (!currentFile || splitPoints.size === 0) {
-      toast({ variant: "destructive", title: "Tidak ada titik pisah", description: "Silakan klik di antara halaman untuk membuat pemisah." });
+      toast({ variant: "destructive", title: "No split points", description: "Please click between pages to create dividers." });
       return;
     }
     setIsProcessing(true);
@@ -241,7 +241,7 @@ export default function PdfEditor() {
         }
 
         if (chunks.length === 0 || chunks.every(c => c.length === 0)) {
-            toast({ variant: "destructive", title: "Tidak ada yang bisa dipisah", description: "Tidak ada halaman terpilih dalam rentang pemisahan." });
+            toast({ variant: "destructive", title: "Nothing to split", description: "No selected pages within the split range." });
             setIsProcessing(false);
             return;
         }
@@ -254,7 +254,7 @@ export default function PdfEditor() {
             const pdfBytes = await createPdf(chunk);
             if (pdfBytes) {
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                downloadBlob(blob, `${originalFileName}_split_${i + 1}.pdf`);
+                downloadBlob(blob, `${originalFileName}_PDF-adelSelect_${i + 1}.pdf`);
                 await new Promise(resolve => setTimeout(resolve, 200)); 
             }
         }
@@ -262,7 +262,7 @@ export default function PdfEditor() {
         setStatusMessage(`Successfully downloaded ${chunks.length} split files!`);
     } catch (error) {
         console.error("Error creating split PDFs:", error);
-        toast({ variant: "destructive", title: "Gagal Membuat PDF Terpisah", description: error instanceof Error ? error.message : "Terjadi kesalahan yang tidak diketahui." });
+        toast({ variant: "destructive", title: "Failed to Create Split PDFs", description: error instanceof Error ? error.message : "An unknown error occurred." });
     } finally {
         setIsProcessing(false);
         setTimeout(() => setStatusMessage(null), 5000);
@@ -309,8 +309,8 @@ export default function PdfEditor() {
           <div className="floating">
             <UploadCloud className="mx-auto w-16 h-16 text-primary" strokeWidth={1}/>
           </div>
-          <h3 className="mt-4 text-xl font-semibold font-headline">Jatuhkan file pdf disini</h3>
-          <p className="mt-2 text-sm text-muted-foreground">atau klik disini untuk memilih berkas</p>
+          <h3 className="mt-4 text-xl font-semibold font-headline">Drop PDF file here</h3>
+          <p className="mt-2 text-sm text-muted-foreground">or click here to select file</p>
         </div>
       </div>
     );
@@ -320,7 +320,7 @@ export default function PdfEditor() {
     return (
       <div className="text-center py-10">
         <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">Memproses PDF Anda...</p>
+        <p className="mt-4 text-muted-foreground">Processing your PDF...</p>
       </div>
     );
   }
@@ -329,10 +329,10 @@ export default function PdfEditor() {
     <div>
         <div className="flex flex-wrap gap-3 justify-start items-center mb-6">
             <Button onClick={handleInvertSelection} variant="secondary" size="sm" disabled={isProcessing}><FlipHorizontal className="mr-2"/>Pilihan Pembalik</Button>
-            <Button onClick={handleRotateAll} variant="secondary" size="sm" disabled={isProcessing}><RotateCw className="mr-2"/>Putar Pilihan</Button>
-            <Button onClick={handleDownloadMerged} size="sm" disabled={isProcessing || selectedPages.size === 0 || splitPoints.size > 0}>{isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Download className="mr-2"/>}Unduh Terpilih</Button>
-            <Button onClick={handleDownloadSplit} variant="outline" size="sm" disabled={isProcessing || splitPoints.size === 0}>{isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Scissors className="mr-2"/>}Unduh Split PDF</Button>
-            <Button onClick={resetState} variant="destructive" size="sm" disabled={isProcessing}><Trash2 className="mr-2"/>Hapus PDF</Button>
+            <Button onClick={handleRotateAll} variant="secondary" size="sm" disabled={isProcessing}><RotateCw className="mr-2"/>Rotate Selected</Button>
+            <Button onClick={handleDownloadMerged} size="sm" disabled={isProcessing || selectedPages.size === 0 || splitPoints.size > 0}>{isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Download className="mr-2"/>}Download Selected</Button>
+            <Button onClick={handleDownloadSplit} variant="outline" size="sm" disabled={isProcessing || splitPoints.size === 0}>{isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Scissors className="mr-2"/>}Download Split PDF</Button>
+            <Button onClick={resetState} variant="destructive" size="sm" disabled={isProcessing}><Trash2 className="mr-2"/>Delete PDF</Button>
         </div>
 
         {statusMessage && <div className="mb-4 text-center text-sm p-2 rounded-md bg-accent text-accent-foreground">{statusMessage}</div>}
@@ -352,7 +352,7 @@ export default function PdfEditor() {
                                 <img src={page.dataUrl} className="object-contain w-full h-full transition-transform duration-300" alt={`Page ${page.id}`} style={{transform: `rotate(${rotation}deg)`}}/>
                                 <div className={`absolute inset-0 transition-all bg-black ${isSelected ? 'opacity-0' : 'opacity-40 group-hover:opacity-10'}`}></div>
                                 <div className="absolute right-0 bottom-0 left-0 p-2 text-center text-white text-xs font-bold bg-black/50">
-                                    Halaman {page.id}
+                                    Page {page.id}
                                 </div>
                                 <button onClick={(e) => { e.stopPropagation(); rotatePage(page.id, 'cw'); }} className="absolute top-1 right-1 p-1.5 text-white rounded-full opacity-0 transition-opacity rotate-btn bg-black/50 group-hover:opacity-100 hover:bg-primary z-10">
                                     <RotateCw className="w-4 h-4"/>
@@ -364,7 +364,7 @@ export default function PdfEditor() {
                                 <button
                                     onClick={() => toggleSplitPoint(page.id)}
                                     className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${splitPoints.has(page.id) ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground hover:bg-accent'}`}
-                                    title={splitPoints.has(page.id) ? "Hapus pemisah" : "Tambah pemisah"}
+                                    title={splitPoints.has(page.id) ? "Remove divider" : "Add divider"}
                                 >
                                     <Scissors className="w-4 h-4" />
                                 </button>
