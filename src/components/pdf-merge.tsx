@@ -161,6 +161,17 @@ export default function PdfMerge() {
     setPageRotations(newRotations);
   };
 
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleDownloadMerged = async () => {
     if (orderedPages.length === 0) return;
     setIsProcessing(true);
@@ -169,60 +180,57 @@ export default function PdfMerge() {
       const newPdf = await PDFDocument.create();
 
       for (const page of orderedPages) {
-        if (page.type === "pdf") {
-          const fileInfo = filesWithPages.find(f => f.id === page.fileId);
-          if (!fileInfo) continue;
+        const fileInfo = filesWithPages.find(f => f.id === page.fileId);
+        if (!fileInfo) continue;
+        
+        const rotation = pageRotations.get(page.id) || 0;
+        const rotationAngle = degrees(rotation);
 
+        if (page.type === "pdf") {
           const arrayBuffer = await fileInfo.file.arrayBuffer();
           const sourcePdf = await PDFDocument.load(arrayBuffer);
           const [copiedPage] = await newPdf.copyPages(sourcePdf, [page.originalPageIndex]);
-          
-          const rotation = pageRotations.get(page.id) || 0;
-          copiedPage.setRotation(degrees(rotation));
+          copiedPage.setRotation(rotationAngle);
           newPdf.addPage(copiedPage);
-
         } else if (page.type === "image") {
-          const fileInfo = filesWithPages.find(f => f.id === page.fileId);
-          if (!fileInfo) continue;
-
           const arrayBuffer = await fileInfo.file.arrayBuffer();
-          const image = page.fileName.toLowerCase().endsWith('.png')
-            ? await newPdf.embedPng(arrayBuffer)
-            : await newPdf.embedJpg(arrayBuffer);
+          let image;
+          if (fileInfo.file.type === 'image/png') {
+            image = await newPdf.embedPng(arrayBuffer);
+          } else { // Assumes jpeg for others
+            image = await newPdf.embedJpg(arrayBuffer);
+          }
           
+          const dims = image.scale(1);
           const pdfPage = newPdf.addPage();
-          const { width, height } = image.scale(1);
+          
+          let pageWidth = dims.width;
+          let pageHeight = dims.height;
 
-          const rotation = pageRotations.get(page.id) || 0;
-          pdfPage.setRotation(degrees(rotation));
+          if (rotation === 90 || rotation === 270) {
+            pageWidth = dims.height;
+            pageHeight = dims.width;
+          }
 
-          const rotatedDims = rotation === 90 || rotation === 270 ? { width: height, height: width } : { width, height };
+          pdfPage.setSize(pageWidth, pageHeight);
+          pdfPage.setRotation(rotationAngle);
 
-          pdfPage.setSize(rotatedDims.width, rotatedDims.height);
           pdfPage.drawImage(image, {
-              x: 0,
-              y: 0,
-              width: rotatedDims.width,
-              height: rotatedDims.height,
+            x: rotation === 90 ? pageHeight : 0,
+            y: rotation === 270 ? pageWidth : 0,
+            width: dims.width,
+            height: dims.height,
           });
         }
       }
 
       const pdfBytes = await newPdf.save();
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `PDF-adel_merged.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      setStatusMessage("Merged PDF downloaded!");
+      downloadBlob(new Blob([pdfBytes], { type: 'application/pdf' }), "PDF-adel_merged.pdf");
+      setStatusMessage("Merged PDF downloaded successfully!");
+
     } catch (error) {
       console.error("Error creating merged PDF:", error);
-      toast({ variant: "destructive", title: "Error Merging PDF" });
+      toast({ variant: "destructive", title: "Error Merging PDF", description: "Failed to create the merged document." });
       setStatusMessage(null);
     } finally {
       setIsProcessing(false);
