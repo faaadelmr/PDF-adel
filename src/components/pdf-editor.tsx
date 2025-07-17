@@ -144,6 +144,7 @@ export default function PdfEditor() {
     const currentRotation = newRotations.get(pageId) || 0;
     const newRotation = (currentRotation + (direction === 'cw' ? 90 : -90) + 360) % 360;
     newRotations.set(pageId, newRotation);
+    setPageRotations(newRotations);
   };
   
   const handleRotateAll = () => {
@@ -345,8 +346,8 @@ export default function PdfEditor() {
                 const isLastInOrder = index === pageOrder.length - 1;
                 
                 return (
-                    <div key={page.id} className="flex items-start justify-center">
-                        <div data-page-id={page.id} className="relative group page-handle cursor-move w-full" onClick={() => togglePageSelection(page.id)}>
+                    <div key={page.id} data-page-id={page.id} className="flex items-start justify-center">
+                        <div className="relative group page-handle cursor-move w-full" onClick={() => togglePageSelection(page.id)}>
                             <div className={`relative aspect-[0.707] rounded-lg overflow-hidden border-4 transition-all duration-200 ${isSelected ? 'border-primary' : 'border-transparent'}`}>
                                 <img src={page.dataUrl} className="object-contain w-full h-full transition-transform duration-300" alt={`Page ${page.id}`} style={{transform: `rotate(${rotation}deg)`}}/>
                                 <div className={`absolute inset-0 transition-all bg-black ${isSelected ? 'opacity-0' : 'opacity-40 group-hover:opacity-10'}`}></div>

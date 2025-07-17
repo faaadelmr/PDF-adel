@@ -1,6 +1,6 @@
 import Header from "@/components/header";
 import Footer from "@/components/footer";
-import PdfSelect from "@/components/pdf-select";
+import PdfEditor from "@/components/pdf-editor";
 import { Card, CardContent } from "@/components/ui/card";
 import { SeparatorVertical } from "lucide-react";
 
@@ -14,13 +14,13 @@ export default function SelectPage() {
             <div className="py-3 flex items-center gap-4">
               <SeparatorVertical className="w-8 h-8 text-accent" />
               <h1 className="text-2xl font-bold font-headline text-accent">
-                Select Pages
+                Select & Split Pages
               </h1>
             </div>
           </header>
           <Card className="shadow-2xl shadow-accent/10 bg-card border-accent/20">
             <CardContent className="p-4 md:p-6">
-              <PdfSelect />
+              <PdfEditor />
             </CardContent>
           </Card>
         </div>
