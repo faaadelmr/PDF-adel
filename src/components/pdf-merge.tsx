@@ -80,6 +80,7 @@ export default function PdfMerge() {
       const viewport = page.getViewport({ scale: 0.8 });
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d");
+      if (!context) return null;
       canvas.height = viewport.height;
       canvas.width = viewport.width;
       await page.render({ canvasContext: context, viewport }).promise;
@@ -119,7 +120,6 @@ export default function PdfMerge() {
       toast({ title: 'Error processing files', description: 'There was an issue reading your files.', variant: 'destructive' });
     } finally {
       setIsLoading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }, [toast]);
   
@@ -133,7 +133,7 @@ export default function PdfMerge() {
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
-a.click();
+    a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
@@ -232,6 +232,7 @@ a.click();
   const onFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
       handleFiles(Array.from(e.target.files));
+      e.target.value = ""; // Reset file input
     }
   };
 
