@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, type ChangeEvent } from "react";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, rgb } from "pdf-lib";
 import * as pdfjs from "pdfjs-dist";
 import Sortable from "sortablejs";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ interface FileData {
   file: File;
   preview: string;
   pageCount: number;
+  type: 'pdf' | 'image';
 }
 
 const DropZone = ({ onDrop, onFileInputChange, isDragging, fileInputRef, isLoading }: {
@@ -53,12 +54,12 @@ const DropZone = ({ onDrop, onFileInputChange, isDragging, fileInputRef, isLoadi
       onClick={() => !isLoading && fileInputRef.current?.click()}
       className={`p-8 border-2 border-dashed rounded-lg shadow-xl cursor-pointer transition-all duration-300 ${localDragging || isDragging ? 'border-primary bg-primary/10' : 'border-primary/50 hover:border-primary'}`}
     >
-      <input type="file" ref={fileInputRef} onChange={onFileInputChange} multiple accept=".pdf" className="hidden" />
+      <input type="file" ref={fileInputRef} onChange={onFileInputChange} multiple accept=".pdf,.jpg,.jpeg,.png" className="hidden" />
       <div className="text-center">
         <div className="floating">
           <UploadCloud className="mx-auto w-16 h-16 text-primary" strokeWidth={1}/>
         </div>
-        <h3 className="mt-4 text-xl font-semibold font-headline">Drop your PDFs here to add them</h3>
+        <h3 className="mt-4 text-xl font-semibold font-headline">Drop your PDFs or Images here</h3>
         <p className="mt-2 text-sm text-muted-foreground">or click to browse files</p>
       </div>
     </div>
@@ -105,20 +106,35 @@ export default function PdfMerge() {
   
   const generatePreview = async (file: File): Promise<Omit<FileData, 'id' | 'file'> | null> => {
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjs.getDocument(arrayBuffer).promise;
-      const page = await pdf.getPage(1);
-      const viewport = page.getViewport({ scale: 0.8 });
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d");
-      if (!context) return null;
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-      await page.render({ canvasContext: context, viewport }).promise;
-      return { preview: canvas.toDataURL(), pageCount: pdf.numPages };
+      if (file.type.startsWith('image/')) {
+        return { 
+            preview: URL.createObjectURL(file), 
+            pageCount: 1,
+            type: 'image'
+        };
+      }
+      
+      if (file.type === 'application/pdf') {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjs.getDocument(arrayBuffer).promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 0.8 });
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        if (!context) return null;
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        await page.render({ canvasContext: context, viewport }).promise;
+        return { 
+            preview: canvas.toDataURL(), 
+            pageCount: pdf.numPages,
+            type: 'pdf'
+        };
+      }
+      return null;
     } catch(e) {
       console.error("Failed to generate preview for", file.name, e);
-      toast({ title: "Unsupported PDF", description: `Could not process ${file.name}. It might be corrupted or protected.`, variant: 'destructive' });
+      toast({ title: "Unsupported File", description: `Could not process ${file.name}. It might be corrupted or protected.`, variant: 'destructive' });
       return null;
     }
   };
@@ -126,11 +142,12 @@ export default function PdfMerge() {
   const handleFiles = useCallback(async (newFiles: File[]) => {
     if (isLoading || isProcessing) return;
     setIsLoading(true);
-    const addedFiles: FileData[] = [];
+    
     try {
+      const addedFiles: FileData[] = [];
       for (const file of newFiles) {
-        if (file.type !== 'application/pdf') {
-          toast({ title: "Unsupported File Type", description: `${file.name} is not a PDF.`, variant: 'destructive' });
+        if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+          toast({ title: "Unsupported File Type", description: `${file.name} is not a supported file.`, variant: 'destructive' });
           continue;
         }
 
@@ -172,10 +189,25 @@ export default function PdfMerge() {
       const mergedPdf = await PDFDocument.create();
 
       for (const fileData of files) {
-        const pdfBytes = await fileData.file.arrayBuffer();
-        const pdfToMerge = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
-        const copiedPages = await mergedPdf.copyPages(pdfToMerge, pdfToMerge.getPageIndices());
-        copiedPages.forEach(page => mergedPdf.addPage(page));
+        if (fileData.type === 'pdf') {
+          const pdfBytes = await fileData.file.arrayBuffer();
+          const pdfToMerge = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+          const copiedPages = await mergedPdf.copyPages(pdfToMerge, pdfToMerge.getPageIndices());
+          copiedPages.forEach(page => mergedPdf.addPage(page));
+        } else if (fileData.type === 'image') {
+            const imgBytes = await fileData.file.arrayBuffer();
+            let pdfImage;
+            if (fileData.file.type === 'image/jpeg') {
+                pdfImage = await mergedPdf.embedJpg(imgBytes);
+            } else if (fileData.file.type === 'image/png') {
+                pdfImage = await mergedPdf.embedPng(imgBytes);
+            } else {
+                continue; // Should not happen due to file type check
+            }
+            const { width, height } = pdfImage.scale(1);
+            const page = mergedPdf.addPage([width, height]);
+            page.drawImage(pdfImage, { x: 0, y: 0, width, height });
+        }
       }
       
       const mergedPdfBytes = await mergedPdf.save();
@@ -183,7 +215,7 @@ export default function PdfMerge() {
       toast({ title: 'Success!', description: 'Files merged successfully.' });
     } catch (error) {
       console.error("Error merging files:", error);
-      toast({ variant: "destructive", title: "Error Merging Files", description: "An unexpected error occurred during merge. One of the PDFs might be corrupted or encrypted." });
+      toast({ variant: "destructive", title: "Error Merging Files", description: "An unexpected error occurred during merge. One of the files might be corrupted or encrypted." });
     } finally {
       setIsProcessing(false);
     }
@@ -227,7 +259,7 @@ export default function PdfMerge() {
                      <img src={fileData.preview} className="object-contain w-full h-full" alt={`Preview of ${fileData.file.name}`} />
                       <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/70 text-white text-xs">
                           <p className="truncate font-semibold">{fileData.file.name}</p>
-                          <p className="opacity-80">{fileData.pageCount} pages</p>
+                          <p className="opacity-80">{fileData.type === 'pdf' ? `${fileData.pageCount} pages` : 'Image'}</p>
                       </div>
                       <button onClick={() => removeFile(fileData.id)} className="absolute top-1 right-1 p-1 bg-destructive/80 text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity" title="Remove file">
                           <Trash2 className="w-4 h-4"/>
