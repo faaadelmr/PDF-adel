@@ -1,6 +1,6 @@
 import Header from "@/components/header";
 import Footer from "@/components/footer";
-import PdfSelect from "@/components/pdf-select";
+import PdfMerge from "@/components/pdf-merge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Combine } from "lucide-react";
 
@@ -20,7 +20,7 @@ export default function MergePage() {
           </header>
           <Card className="shadow-2xl shadow-primary/10 bg-card border-primary/20">
             <CardContent className="p-4 md:p-6">
-              <PdfSelect />
+              <PdfMerge />
             </CardContent>
           </Card>
         </div>
