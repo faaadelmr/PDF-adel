@@ -43,20 +43,6 @@ export default function Home() {
               </div>
             </Link>
           </div>
-          
-          {/* Yin-Yang Separator */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 opacity-0 fade-in-up animate-delay-600 hidden md:flex">
-             <div className="relative w-full h-full flex items-center justify-center">
-                <div className="absolute w-full h-full rounded-full bg-gradient-to-r from-accent to-primary animate-spin [animation-duration:5s]"></div>
-                <div className="absolute w-28 h-28 rounded-full bg-background"></div>
-                <div className="relative w-24 h-24 rounded-full overflow-hidden flex">
-                    <div className="w-1/2 bg-accent"></div>
-                    <div className="w-1/2 bg-primary"></div>
-                    <div className="absolute w-12 h-12 top-0 left-1/2 -translate-x-1/2 rounded-full bg-accent border-4 border-background"></div>
-                    <div className="absolute w-12 h-12 bottom-0 left-1/2 -translate-x-1/2 rounded-full bg-primary border-4 border-background"></div>
-                </div>
-            </div>
-          </div>
         </div>
       </main>
 
