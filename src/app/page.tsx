@@ -1,11 +1,25 @@
+
+"use client";
+
+import { useState } from 'react';
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { SeparatorVertical, Combine } from 'lucide-react';
+import { SeparatorVertical, Combine, Loader2 } from 'lucide-react';
 
 export default function Home() {
+  const [loading, setLoading] = useState<null | 'select' | 'merge'>(null);
+  const router = useRouter();
+
+  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, target: 'select' | 'merge') => {
+    e.preventDefault();
+    setLoading(target);
+    router.push(target === 'select' ? '/select' : '/merge');
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4 overflow-hidden">
-      <header className="absolute top-0 left-0 w-full p-4 md:p-6 flex justify-between items-center">
+      <header className="top-0 left-0 w-full p-4 md:p-6 flex justify-between items-center">
         <h1 className="text-2xl md:text-3xl font-jujutsu text-yellow-400 tracking-widest">
           PDF-adel
         </h1>
@@ -25,20 +39,28 @@ export default function Home() {
         <div className="relative flex items-center justify-center w-full max-w-4xl">
           <div className="w-full h-full flex flex-col md:flex-row items-stretch justify-center gap-0 md:gap-0">
             {/* Left Gate */}
-            <Link href="/select" className="group w-full md:w-1/2 p-2 opacity-0 fade-in-up animate-delay-200">
+            <Link href="/select" onClick={(e) => handleNavigation(e, 'select')} className="group w-full md:w-1/2 p-2 opacity-0 fade-in-up animate-delay-200">
               <div className="relative h-full flex flex-col justify-center items-center p-8 md:p-12 rounded-lg md:rounded-r-none border-2 border-primary/20 bg-card/80 hover:border-accent hover:bg-accent/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-accent/20 overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full bg-grid-accent opacity-5 group-hover:opacity-10 transition-opacity"></div>
-                <SeparatorVertical className="h-16 w-16 mb-4 text-accent transition-transform duration-300 group-hover:scale-110" />
+                {loading === 'select' ? (
+                  <Loader2 className="h-16 w-16 mb-4 text-accent animate-spin" />
+                ) : (
+                  <SeparatorVertical className="h-16 w-16 mb-4 text-accent transition-transform duration-300 group-hover:scale-110" />
+                )}
                 <h3 className="text-2xl font-bold font-headline mb-2 text-accent">Select & Split Pages</h3>
                 <p className="text-muted-foreground">Choose, split, rotate, disable or delete pages from your PDF. Reorder pages.</p>
               </div>
             </Link>
 
             {/* Right Gate */}
-            <Link href="/merge" className="group w-full md:w-1/2 p-2 opacity-0 fade-in-up animate-delay-400">
+            <Link href="/merge" onClick={(e) => handleNavigation(e, 'merge')} className="group w-full md:w-1/2 p-2 opacity-0 fade-in-up animate-delay-400">
                <div className="relative h-full flex flex-col justify-center items-center p-8 md:p-12 rounded-lg md:rounded-l-none border-2 border-primary/20 bg-card/80 hover:border-primary hover:bg-primary/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/20 overflow-hidden">
                  <div className="absolute top-0 left-0 w-full h-full bg-grid-primary opacity-5 group-hover:opacity-10 transition-opacity"></div>
-                <Combine className="h-16 w-16 mb-4 text-primary transition-transform duration-300 group-hover:scale-110" />
+                {loading === 'merge' ? (
+                  <Loader2 className="h-16 w-16 mb-4 text-primary animate-spin" />
+                ) : (
+                  <Combine className="h-16 w-16 mb-4 text-primary transition-transform duration-300 group-hover:scale-110" />
+                )}
                 <h3 className="text-2xl font-bold font-headline mb-2 text-primary">Merge PDF</h3>
                 <p className="text-muted-foreground">Combine multiple PDF files or images into a single document.</p>
               </div>
@@ -47,30 +69,11 @@ export default function Home() {
         </div>
       </main>
 
-       <footer className="absolute bottom-0 left-0 w-full p-4 text-center">
+       <footer className="bottom-0 left-0 w-full p-4 text-center">
          <p className="text-xs text-muted-foreground">
-           &copy; {new Date().getFullYear()} PDF-adel. Engineered by humans, perfected by AI.
+           &copy; {new Date().getFullYear()} PDF-adel. Buat aja dulu.
          </p>
        </footer>
     </div>
   );
-}
-
-// Add some styles for the grid background if they aren't in globals
-const globalStyles = `
-  .bg-grid-accent {
-    background-image: linear-gradient(hsl(var(--accent)) 1px, transparent 1px), linear-gradient(to right, hsl(var(--accent)) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
-  .bg-grid-primary {
-    background-image: linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(to right, hsl(var(--primary)) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
-`;
-
-if (typeof window !== 'undefined') {
-  const styleSheet = document.createElement("style");
-  styleSheet.type = "text/css";
-  styleSheet.innerText = globalStyles;
-  document.head.appendChild(styleSheet);
 }
