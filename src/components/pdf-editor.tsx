@@ -328,7 +328,7 @@ export default function PdfEditor() {
   return (
     <div>
         <div className="flex flex-wrap gap-3 justify-start items-center mb-6">
-            <Button onClick={handleInvertSelection} variant="secondary" size="sm" disabled={isProcessing}><FlipHorizontal className="mr-2"/>Pilihan Pembalik</Button>
+            <Button onClick={handleInvertSelection} variant="secondary" size="sm" disabled={isProcessing}><FlipHorizontal className="mr-2"/>Jutsushiki Hanten</Button>
             <Button onClick={handleRotateAll} variant="secondary" size="sm" disabled={isProcessing}><RotateCw className="mr-2"/>Rotate Selected</Button>
             <Button onClick={handleDownloadMerged} size="sm" disabled={isProcessing || selectedPages.size === 0 || splitPoints.size > 0}>{isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Download className="mr-2"/>}Download Selected</Button>
             <Button onClick={handleDownloadSplit} variant="outline" size="sm" disabled={isProcessing || splitPoints.size === 0}>{isProcessing ? <Loader2 className="mr-2 animate-spin"/> : <Scissors className="mr-2"/>}Download Split PDF</Button>

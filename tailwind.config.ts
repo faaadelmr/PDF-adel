@@ -12,6 +12,7 @@ export default {
       fontFamily: {
         body: ['Rajdhani', 'sans-serif'],
         headline: ['Orbitron', 'sans-serif'],
+        jujutsu: ['Keania One'],
         code: ['monospace'],
       },
       colors: {

@@ -6,14 +6,14 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4 overflow-hidden">
       <header className="absolute top-0 left-0 w-full p-4 md:p-6 flex justify-between items-center">
-        <h1 className="text-2xl md:text-3xl font-bold font-headline text-yellow-400 tracking-widest">
+        <h1 className="text-2xl md:text-3xl font-jujutsu text-yellow-400 tracking-widest">
           PDF-adel
         </h1>
       </header>
       
       <main className="flex-grow flex flex-col items-center justify-center text-center">
         <div className="opacity-0 fade-in-up flex flex-col items-center justify-center">
-          <h2 className="text-4xl md:text-6xl font-extrabold font-headline tracking-tighter mb-4">
+          <h2 className="text-4xl md:text-6xl font-jujutsu tracking-tighter mb-4">
             The Cybernetic PDF Toolkit
           </h2>
           <p className="max-w-2xl text-yellow-400 text-center text-lg md:text-xl text-muted-foreground mb-12">
