@@ -6,7 +6,7 @@ import ThemeSwitcher from "@/components/theme-switcher";
 import { Combine, SeparatorVertical } from "lucide-react";
 
 const navItems = [
-  { href: "/select", label: "Select", icon: SeparatorVertical, color: "text-accent" },
+  { href: "/select", label: "Select/Split", icon: SeparatorVertical, color: "text-accent" },
   { href: "/merge", label: "Merge", icon: Combine, color: "text-primary" },
 ];
 
