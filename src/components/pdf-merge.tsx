@@ -52,12 +52,12 @@ const DropZone = ({ onDrop, onFileInputChange, isDragging, fileInputRef, isLoadi
       onDragLeave={onDragLeave}
       onDrop={handleDrop}
       onClick={() => !isLoading && fileInputRef.current?.click()}
-      className={`p-8 border-2 border-dashed rounded-lg shadow-xl cursor-pointer transition-all duration-300 ${localDragging || isDragging ? 'border-primary bg-primary/10' : 'border-primary/50 hover:border-primary'}`}
+      className={`p-8 border-2 border-dashed rounded-lg shadow-xl cursor-pointer transition-all duration-300 ${localDragging || isDragging ? 'border-accent bg-accent/10' : 'border-accent/50 hover:border-accent'}`}
     >
       <input type="file" ref={fileInputRef} onChange={onFileInputChange} multiple accept=".pdf,.jpg,.jpeg,.png" className="hidden" />
       <div className="text-center">
         <div className="floating">
-          <UploadCloud className="mx-auto w-16 h-16 text-primary" strokeWidth={1}/>
+          <UploadCloud className="mx-auto w-16 h-16 text-accent" strokeWidth={1}/>
         </div>
         <h3 className="mt-4 text-xl font-semibold font-headline">Drop your PDFs or Images here</h3>
         <p className="mt-2 text-sm text-muted-foreground">or click to browse files</p>

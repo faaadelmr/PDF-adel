@@ -16,7 +16,7 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="text-2xl font-bold text-primary font-headline tracking-widest">
+            <Link href="/" className="text-2xl font-bold text-yellow-400 font-headline tracking-widest">
               PDF-adel
             </Link>
           </div>

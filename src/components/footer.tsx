@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row justify-between items-center gap-2 text-center sm:text-left">
           <div className="text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()}{" "}
-            <span className="font-medium text-primary/90">PDF-adel</span>. All rights reserved.
+            <span className="font-medium text-yellow-400">PDF-adel</span>. All rights reserved.
           </div>
           <div className="flex items-center space-x-2 text-xs text-muted-foreground">
             <span>Crafted with  cyberpunk vibes by</span>

@@ -18,7 +18,7 @@ export default function MergePage() {
               </h1>
             </div>
           </header>
-          <Card className="shadow-2xl shadow-primary/10 bg-card border-primary/20">
+          <Card className="shadow-2xl shadow-accent/10 bg-card border-accent/20">
             <CardContent className="p-4 md:p-6">
               <PdfMerge />
             </CardContent>
