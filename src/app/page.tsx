@@ -71,7 +71,7 @@ export default function Home() {
 
        <footer className="bottom-0 left-0 w-full p-4 text-center">
          <p className="text-xs text-muted-foreground">
-           &copy; {new Date().getFullYear()} PDF-adel. Buat aja dulu.
+           &copy; {new Date().getFullYear()} PDF-adel. Coba aja dulu.
          </p>
        </footer>
     </div>
