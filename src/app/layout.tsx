@@ -22,7 +22,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Jolly+Lodger&display=swap" rel="stylesheet"></link>
         <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&family=Jolly+Lodger&display=swap" rel="stylesheet"></link>
         <link href="https://fonts.googleapis.com/css2?family=Keania+One&display=swap" rel="stylesheet"></link>
-        <meta name="google-site-verification" content="htKXIrnMVh-JK6DalCRA5vi_QUxxXm1Ary_MOCR2Gmc" />
+        <meta name="google-site-verification" content="htKXIrnMVh-JK6DalCRA5vi_QUxxXm1Ary_MOCR2Gmc"/>
       </head>
       <body className="font-body antialiased">
         <ThemeProvider
