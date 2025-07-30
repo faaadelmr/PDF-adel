@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
@@ -14,11 +14,58 @@ export default function Home() {
   const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, target: 'select' | 'merge') => {
     e.preventDefault();
     setLoading(target);
-    router.push(target === 'select' ? '/select' : '/merge');
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+      mainContent.classList.add('fade-out');
+      mainContent.addEventListener('animationend', () => {
+        router.push(target === 'select' ? '/select' : '/merge');
+      }, { once: true });
+    } else {
+      router.push(target === 'select' ? '/select' : '/merge');
+    }
   };
 
+  const [typedText, setTypedText] = useState('#Coba');
+  const words = ['AjaDulu', 'Lagi', 'AjaDulu', 'Mulai', 'AjaDulu', 'Berani', 'AjaDulu', 'Gagal', 'AjaDulu', 'Kawan'];
+
+  useEffect(() => {
+    let wordIndex = 0;
+    let isDeleting = false;
+    let currentWord = '';
+    let timeoutId: NodeJS.Timeout;
+
+    const type = () => {
+      const fullWord = words[wordIndex];
+      
+      if (isDeleting) {
+        currentWord = fullWord.substring(0, currentWord.length - 1);
+      } else {
+        currentWord = fullWord.substring(0, currentWord.length + 1);
+      }
+      
+      setTypedText(`#Coba${currentWord}`);
+      
+      let typeSpeed = isDeleting ? 100 : 150;
+
+      if (!isDeleting && currentWord === fullWord) {
+        typeSpeed = 1000; // Pause at end
+        isDeleting = true;
+      } else if (isDeleting && currentWord === '') {
+        isDeleting = false;
+        wordIndex = (wordIndex + 1) % words.length;
+        typeSpeed = 500; // Pause before new word
+      }
+
+      timeoutId = setTimeout(type, typeSpeed);
+    };
+
+    type();
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4 overflow-hidden">
+    <div id="main-content" className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4 overflow-hidden fade-in">
       <header className="top-0 left-0 w-full p-4 md:p-6 flex justify-between items-center">
         <h1 className="text-2xl md:text-3xl font-jujutsu text-yellow-400 tracking-widest">
           PDF-adel
@@ -32,7 +79,8 @@ export default function Home() {
           </h2>
           <p className="max-w-2xl text-yellow-400 text-center text-lg md:text-xl text-muted-foreground mb-12">
             Select, Split, Merge, and Re-engineer your documents with precision and style.
-            <br />No need upload, all process direct from your browser. so its secure.
+            <br />
+ <span className="font-bold text-xl md:text-2xl">No need upload</span>, all process direct from your browser. so its secure.
           </p>
         </div>
 
@@ -71,7 +119,7 @@ export default function Home() {
 
        <footer className="bottom-0 left-0 w-full p-4 text-center">
          <p className="text-xs text-muted-foreground">
-           &copy; {new Date().getFullYear()} PDF-adel. Coba aja dulu.
+           &copy; {new Date().getFullYear()} PDF-adel. <span className="animated-highlight-text text-white">{typedText}</span>
          </p>
        </footer>
     </div>

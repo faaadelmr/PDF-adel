@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PDF-adel",
-  description: "Select, merge, and manage your PDF files with a cyberpunk flair.",
+  title: "PDF-adel | MERGE, SPLIT, SELECT PDF by faaadelmr",
+  description: "All Progress on Your Browser, NO NEED UPLOAD so it's Secure. Easily select, split, merge, and manage your PDF files. A fast, secure, and CYBERNETIC PDF toolkit. #CobaAjaDulu",
 };
 
 export default function RootLayout({
@@ -22,6 +22,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Jolly+Lodger&display=swap" rel="stylesheet"></link>
         <link href="https://fonts.googleapis.com/css2?family=Freckle+Face&family=Jolly+Lodger&display=swap" rel="stylesheet"></link>
         <link href="https://fonts.googleapis.com/css2?family=Keania+One&display=swap" rel="stylesheet"></link>
+        <meta name="google-site-verification" content="htKXIrnMVh-JK6DalCRA5vi_QUxxXm1Ary_MOCR2Gmc" />
       </head>
       <body className="font-body antialiased">
         <ThemeProvider
