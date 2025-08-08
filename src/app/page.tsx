@@ -26,7 +26,7 @@ export default function Home() {
   };
 
   const [typedText, setTypedText] = useState('#Coba');
-  const words = ['AjaDulu', 'Lagi', 'AjaDulu', 'Mulai', 'AjaDulu', 'Berani', 'AjaDulu', 'Gagal', 'AjaDulu', 'Kawan'];
+  const words = ['AjaDulu', 'Lagi', 'AjaDulu', 'Mulai', 'AjaDulu', 'Berani', 'AjaDulu', 'Gagal', 'AjaDulu', 'in Nakama'];
 
   useEffect(() => {
     let wordIndex = 0;

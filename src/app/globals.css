@@ -123,7 +123,6 @@
   white-space: nowrap;
   min-width: 10px;
   text-align: center;
-  animation: pulse 1.2s infinite alternate, gradient 3s ease infinite;
   margin-left: 0.5rem;
   padding-right: 0.125rem;
   white-space: nowrap;
@@ -151,7 +150,6 @@
   box-shadow: 0 6px 12px rgba(251, 191, 36, 0.4);
   transition: all 0.3s ease;
   background-size: 200% 100%;
-  animation: pulse 1.2s infinite alternate, gradient 3s ease infinite;
 }
 
 .animated-highlight-text::after {
@@ -166,17 +164,6 @@
   z-index: -2;
   border-radius: 1px;
   transform: scaleX(0.95);
-}
-
-@keyframes pulse {
-  0% { 
-      transform: rotate(-2deg) scaleX(0.98);
-      opacity: 0.9;
-  }
-  100% { 
-      transform: rotate(2deg) scaleX(1.05);
-      opacity: 1;
-  }
 }
 
 @keyframes gradient {
