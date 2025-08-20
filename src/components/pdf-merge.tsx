@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, type ChangeEvent } from "react";
-import { PDFDocument, rgb } from "pdf-lib";
+import { PDFDocument } from "pdf-lib";
 import * as pdfjs from "pdfjs-dist";
 import Sortable from "sortablejs";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   Trash2,
   Download,
   Loader2,
+  FileImage,
 } from "lucide-react";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
@@ -182,40 +183,91 @@ export default function PdfMerge() {
     URL.revokeObjectURL(url);
   };
   
+  const createMergedPdf = async (): Promise<Uint8Array | null> => {
+    if (files.length === 0) return null;
+    const mergedPdf = await PDFDocument.create();
+  
+    for (const fileData of files) {
+      if (fileData.type === 'pdf') {
+        const pdfBytes = await fileData.file.arrayBuffer();
+        const pdfToMerge = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+        const copiedPages = await mergedPdf.copyPages(pdfToMerge, pdfToMerge.getPageIndices());
+        copiedPages.forEach(page => mergedPdf.addPage(page));
+      } else if (fileData.type === 'image') {
+        const imgBytes = await fileData.file.arrayBuffer();
+        let pdfImage;
+        if (fileData.file.type === 'image/jpeg') {
+          pdfImage = await mergedPdf.embedJpg(imgBytes);
+        } else if (fileData.file.type === 'image/png') {
+          pdfImage = await mergedPdf.embedPng(imgBytes);
+        } else {
+          continue;
+        }
+        const { width, height } = pdfImage.scale(1);
+        const page = mergedPdf.addPage([width, height]);
+        page.drawImage(pdfImage, { x: 0, y: 0, width, height });
+      }
+    }
+    return await mergedPdf.save();
+  };
+  
   const handleDownloadMerged = async () => {
     if (files.length === 0) return;
     setIsProcessing(true);
     try {
-      const mergedPdf = await PDFDocument.create();
-
-      for (const fileData of files) {
-        if (fileData.type === 'pdf') {
-          const pdfBytes = await fileData.file.arrayBuffer();
-          const pdfToMerge = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
-          const copiedPages = await mergedPdf.copyPages(pdfToMerge, pdfToMerge.getPageIndices());
-          copiedPages.forEach(page => mergedPdf.addPage(page));
-        } else if (fileData.type === 'image') {
-            const imgBytes = await fileData.file.arrayBuffer();
-            let pdfImage;
-            if (fileData.file.type === 'image/jpeg') {
-                pdfImage = await mergedPdf.embedJpg(imgBytes);
-            } else if (fileData.file.type === 'image/png') {
-                pdfImage = await mergedPdf.embedPng(imgBytes);
-            } else {
-                continue; // Should not happen due to file type check
-            }
-            const { width, height } = pdfImage.scale(1);
-            const page = mergedPdf.addPage([width, height]);
-            page.drawImage(pdfImage, { x: 0, y: 0, width, height });
-        }
-      }
-      
-      const mergedPdfBytes = await mergedPdf.save();
+      const mergedPdfBytes = await createMergedPdf();
+      if (!mergedPdfBytes) throw new Error("Could not create PDF.");
       downloadBlob(new Blob([mergedPdfBytes], { type: 'application/pdf' }), "PDF-adel_merged.pdf");
       toast({ title: 'Success!', description: 'Files merged successfully.' });
     } catch (error) {
       console.error("Error merging files:", error);
       toast({ variant: "destructive", title: "Error Merging Files", description: "An unexpected error occurred during merge. One of the files might be corrupted or encrypted." });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleConvertFileToImages = async (fileData: FileData) => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    const originalFileName = fileData.file.name.replace(/\.[^/.]+$/, "");
+  
+    try {
+      if (fileData.type === 'image') {
+        toast({ title: 'Downloading Image...' });
+        const blob = await fileData.file.arrayBuffer().then(buffer => new Blob([buffer]));
+        downloadBlob(blob, fileData.file.name);
+        toast({ title: 'Success!', description: 'Image downloaded.' });
+      } else if (fileData.type === 'pdf') {
+        toast({ title: 'Converting to Images...', description: 'This may take a moment.' });
+        const pdfBytes = await fileData.file.arrayBuffer();
+        const pdf = await pdfjs.getDocument({ data: pdfBytes }).promise;
+        const numPages = pdf.numPages;
+  
+        for (let i = 1; i <= numPages; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 2.0 }); 
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          if (!context) continue;
+  
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+  
+          await page.render({ canvasContext: context, viewport }).promise;
+  
+          canvas.toBlob((blob) => {
+            if (blob) {
+              downloadBlob(blob, `${originalFileName}_page_${i}.png`);
+            }
+          }, 'image/png');
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+        toast({ title: 'Success!', description: `Converted ${numPages} pages to images.` });
+      }
+    } catch (error) {
+      console.error("Error converting file:", error);
+      toast({ variant: "destructive", title: "Conversion Error", description: "An unexpected error occurred during conversion." });
     } finally {
       setIsProcessing(false);
     }
@@ -261,9 +313,14 @@ export default function PdfMerge() {
                           <p className="truncate font-semibold">{fileData.file.name}</p>
                           <p className="opacity-80">{fileData.type === 'pdf' ? `${fileData.pageCount} pages` : 'Image'}</p>
                       </div>
-                      <button onClick={() => removeFile(fileData.id)} className="absolute top-1 right-1 p-1 bg-destructive/80 text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity" title="Remove file">
-                          <Trash2 className="w-4 h-4"/>
-                      </button>
+                      <div className="absolute top-1 right-1 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={(e) => {e.stopPropagation(); handleConvertFileToImages(fileData);}} className="p-1.5 bg-accent/80 text-accent-foreground rounded-full" title="Download as Image(s)">
+                            <FileImage className="w-4 h-4"/>
+                        </button>
+                        <button onClick={(e) => {e.stopPropagation(); removeFile(fileData.id);}} className="p-1.5 bg-destructive/80 text-destructive-foreground rounded-full" title="Remove file">
+                            <Trash2 className="w-4 h-4"/>
+                        </button>
+                      </div>
                   </div>
               ))}
           </div>
