@@ -1,11 +1,7 @@
 {
-  "name": "PDF-adel",
+  "name": "PDF-adel | LOCAL PDF For MERGE, SPLIT, SELECT by faaadelmr",
   "short_name": "PDF-adel",
-  "description": "The Cybernetic PDF Toolkit. Select, Split, Merge, and Re-engineer your documents with precision and style.",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#0c0a09",
-  "theme_color": "#f472b6",
+  "description": "All Progress on Your Browser, NO NEED UPLOAD so it's Secure. Easily select, split, merge, and manage your PDF files. A fast, secure, and CYBERNETIC PDF toolkit. #CobaAjaDulu",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -17,5 +13,10 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "theme_color": "#111827",
+  "background_color": "#111827",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait"
 }
